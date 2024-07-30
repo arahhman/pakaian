@@ -11,34 +11,150 @@
 - only grreting : http://127.0.0.1:8000/pakaian
 - get sentences : http://127.0.0.1:8000/rahman
 
-### Premium Partners
+### Database
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+    - Backup Database
+        - Buka Terminal
+            Pastikan Anda memiliki akses ke terminal dan hak akses root
+        - login ke mariadb
+            mysql -u root -p dan masukan password jika diminta
+        - pilih database
+        - backup database
+            mysqldump -u username -p pakaian > backup_pakaian.sql
 
-## Contributing
+    - Restore Database
+        - Buka Terminal
+            Pastikan Anda memiliki akses ke terminal dan hak akses root
+        - login ke mariadb
+            mysql -u root -p dan masukan password jika diminta
+        - buat database baru
+            CREATE DATABASE pakaian;
+        - restore database
+            mysql -u username -p pakaian < backup_pakaian.sql
+    
+    - DDL
+        CREATE TABLE pakaian (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            jenis VARCHAR(255) NOT NULL,
+            merk VARCHAR(255) NOT NULL
+        );
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+    - SP CREATE ( CALL CreatePakaian('Kaos', 'Adidas'); )
+        DELIMITER //
 
-## Code of Conduct
+        CREATE PROCEDURE CreatePakaian(
+            IN p_jenis VARCHAR(255),
+            IN p_merk VARCHAR(255)
+        )
+        BEGIN
+            INSERT INTO pakaian (jenis, merk) VALUES (p_jenis, p_merk);
+        END //
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+        DELIMITER ;
 
-## Security Vulnerabilities
+    - SP READ ( CALL GetAllPakaian(); )
+        DELIMITER //
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+        CREATE PROCEDURE GetAllPakaian()
+        BEGIN
+            SELECT * FROM pakaian;
+        END //
 
-## License
+        DELIMITER ;
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+    - SP UPDATE ( CALL UpdatePakaian(1, 'Kaos', 'Nike'); )
+        DELIMITER //
+
+        CREATE PROCEDURE UpdatePakaian(
+            IN p_id BIGINT UNSIGNED,
+            IN p_jenis VARCHAR(255),
+            IN p_merk VARCHAR(255)
+        )
+        BEGIN
+            UPDATE pakaian
+            SET jenis = p_jenis, merk = p_merk
+            WHERE id = p_id;
+        END //
+
+        DELIMITER ;
+
+    - SP DELETE ( CALL DeletePakaian(1); )
+        DELIMITER //
+
+        CREATE PROCEDURE DeletePakaian(
+            IN p_id BIGINT UNSIGNED
+        )
+        BEGIN
+            DELETE FROM pakaian WHERE id = p_id;
+        END //
+
+        DELIMITER ;
+
+    - BUAT TABLE HISTORI
+        CREATE TABLE pakaian_histories (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            table_name VARCHAR(255) NOT NULL,
+            record_id INT NOT NULL,
+            action ENUM('insert', 'update', 'delete') NOT NULL,
+            old_data TEXT,
+            new_data TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+
+    - TRIGGER ON INSERT
+        DELIMITER //
+
+        CREATE TRIGGER after_pakaian_insert
+        AFTER INSERT ON pakaian
+        FOR EACH ROW
+        BEGIN
+            INSERT INTO pakaian_histories (table_name, record_id, action, new_data)
+            VALUES ('pakaian', NEW.id, 'insert', CONCAT('{"jenis": "', NEW.jenis, '", "merk": "', NEW.merk, '"}'));
+        END //
+
+        DELIMITER ;
+
+    - TRIGGER ON UPDATE
+        DELIMITER //
+
+        CREATE TRIGGER after_pakaian_update
+        AFTER UPDATE ON pakaian
+        FOR EACH ROW
+        BEGIN
+            INSERT INTO pakaian_histories (table_name, record_id, action, old_data, new_data)
+            VALUES (
+                'pakaian',
+                OLD.id,
+                'update',
+                CONCAT('{"jenis": "', OLD.jenis, '", "merk": "', OLD.merk, '"}'),
+                CONCAT('{"jenis": "', NEW.jenis, '", "merk": "', NEW.merk, '"}')
+            );
+        END //
+
+        DELIMITER ;
+
+    - TRIGGER ON DELETE
+        DELIMITER //
+
+        CREATE TRIGGER after_pakaian_delete
+        AFTER DELETE ON pakaian
+        FOR EACH ROW
+        BEGIN
+            INSERT INTO pakaian_histories (table_name, record_id, action, old_data)
+            VALUES (
+                'pakaian',
+                OLD.id,
+                'delete',
+                CONCAT('{"jenis": "', OLD.jenis, '", "merk": "', OLD.merk, '"}')
+            );
+        END //
+
+        DELIMITER ;
+
+    - Query CTE
+        ;WITH CTE_Pakaian AS (
+            SELECT id, jenis, merk
+            FROM pakaian
+        )
+        SELECT *
+        FROM CTE_Pakaian;
