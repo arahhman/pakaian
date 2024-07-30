@@ -7,6 +7,7 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
+Route::post('/register', [App\Http\Controllers\API\RegisterController::class, 'register']);
 Route::post('/login', [App\Http\Controllers\API\LoginController::class, 'login']);
 
 Route::middleware('auth:sanctum')->group(function () {
@@ -15,3 +16,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/pakaian/{id}', [App\Http\Controllers\API\PakaianController::class, 'update']);
     Route::delete('/pakaian/{id}', [App\Http\Controllers\API\PakaianController::class, 'destroy']);
 });
+
+Route::get('/pakaian-no-auth', [App\Http\Controllers\API\PakaianController::class, 'get']);

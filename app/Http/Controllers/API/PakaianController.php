@@ -53,4 +53,11 @@ class PakaianController extends Controller
 
         return response()->json(['message' => 'Pakaian deleted successfully']);
     }
+
+    public function get()
+    {
+        $pakaian = Pakaian::all();
+
+        return response()->json($pakaian);
+    }
 }

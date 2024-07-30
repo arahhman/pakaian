@@ -1,8 +1,10 @@
 ## How To
 
-- get token : 127.0.0.1:8000/api/login (method post, form data : email:test@mail.com, password:12345678)
+- register user : 127.0.0.1:8000/api/register (method post, body json { "name": "cek", "email": "cek@example.com", "password": "password123", "password_confirmation": "password123" } )
+- get bearer token : 127.0.0.1:8000/api/login (method post, form data : email:test@mail.com, password:12345678)
 - store data pakaian : 127.0.0.1:8000/api/pakaian (method post, auth bearer token, body json { "jenis": "Adidas", "merk": "Adidas" })
 - get data pakaian : 127.0.0.1:8000/api/pakaian (method get, auth bearer token)
+- get data pakaian tanpa auth : 127.0.0.1:8000/api/pakaian-no-auth (method get, no auth)
 - update data pakaian : 127.0.0.1:8000/api/pakaian/{id} (method put, auth bearer token, body json { "jenis": "Adidas", "merk": "Adidas" })
 - update data pakaian : 127.0.0.1:8000/api/pakaian/{id} (method delete, auth bearer token)
 
