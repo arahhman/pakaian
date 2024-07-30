@@ -16,7 +16,6 @@
 
                     <div class="container">
                         <p>Session username Example: {{ Auth::user()->name  }}</p>
-                        <p>Cookie Example: {{ \Illuminate\Support\Facades\Cookie::get('cookie_data') }}</p>
                     </div>
 
                     {{ __('You are logged in!') }}
